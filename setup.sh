@@ -14,8 +14,9 @@ SERVER_PRIVATE_KEY=$(cat server_private.key)
 CLIENT_PUBLIC_KEY=$(cat client_public.key)
 CLIENT_PRIVATE_KEY=$(cat client_private.key)
 SERVER_PORT=51820
-CLIENT_IP_RANGE="10.0.0.2/32"
-SERVER_IP_RANGE="10.0.0.1/24"
+CLIENT_IP="10.10.151.2/24"
+SERVER_IP_RANGE="10.10.151.1/24"
+PEER_NETWORK="10.10.150.0/24"
 
 # Configure WireGuard Interface on Server
 sudo sh -c "echo '[Interface]
@@ -29,7 +30,7 @@ SaveConfig = true' > /etc/wireguard/wg0.conf"
 # Add client configuration to server
 sudo sh -c "echo '[Peer]
 PublicKey = $CLIENT_PUBLIC_KEY
-AllowedIPs = $CLIENT_IP_RANGE' >> /etc/wireguard/wg0.conf"
+AllowedIPs = $CLIENT_IP' >> /etc/wireguard/wg0.conf"
 
 # Bring the WireGuard interface up
 sudo wg-quick up wg0
@@ -38,13 +39,13 @@ sudo systemctl enable wg-quick@wg0
 # Client Configuration File
 echo "[Interface]
 PrivateKey = $CLIENT_PRIVATE_KEY
-Address = $CLIENT_IP_RANGE
+Address = $CLIENT_IP
 DNS = 8.8.8.8
 
 [Peer]
 PublicKey = $(cat server_public.key)
 Endpoint = $SERVER_IP:$SERVER_PORT
-AllowedIPs = 0.0.0.0/0
+AllowedIPs = $PEER_NETWORK, $SERVER_IP_RANGE
 PersistentKeepalive = 25" > ~/client-wg0.conf
 
 # Generate QR Code as an image
