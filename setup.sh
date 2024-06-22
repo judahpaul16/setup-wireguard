@@ -18,6 +18,10 @@ CLIENT_IP="10.10.151.2/24"
 SERVER_IP_RANGE="10.10.151.1/24"
 PEER_NETWORK="10.10.150.0/24"
 
+# Enable IP forwarding
+sudo sh -c "echo 'net.ipv4.ip_forward=1' > /etc/sysctl.d/99-sysctl.conf"
+sudo sysctl --system
+
 # Configure WireGuard Interface on Server
 sudo sh -c "echo '[Interface]
 Address = $SERVER_IP_RANGE
@@ -31,6 +35,10 @@ SaveConfig = true' > /etc/wireguard/wg0.conf"
 sudo sh -c "echo '[Peer]
 PublicKey = $CLIENT_PUBLIC_KEY
 AllowedIPs = $CLIENT_IP' >> /etc/wireguard/wg0.conf"
+
+# Add route for peer network
+sudo sh -c "echo 'PostUp = ip route add $PEER_NETWORK via 10.10.151.1 dev wg0' >> /etc/wireguard/wg0.conf"
+sudo sh -c "echo 'PostDown = ip route del $PEER_NETWORK via 10.10.151.1 dev wg0' >> /etc/wireguard/wg0.conf"
 
 # Bring the WireGuard interface up
 sudo wg-quick up wg0
