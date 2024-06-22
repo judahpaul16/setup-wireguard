@@ -44,6 +44,18 @@ sudo sh -c "echo 'PostDown = ip route del $PEER_NETWORK via 10.10.151.1 dev wg0'
 sudo wg-quick up wg0
 sudo systemctl enable wg-quick@wg0
 
+# Ensure systemd-resolved is using the correct DNS servers
+sudo sh -c "echo '[Resolve]
+DNS=8.8.8.8 8.8.4.4
+FallbackDNS=1.1.1.1 1.0.0.1
+DNSStubListener=no' > /etc/systemd/resolved.conf"
+sudo systemctl restart systemd-resolved
+
+# Remove symlink for resolv.conf and create new resolv.conf
+sudo rm /etc/resolv.conf
+sudo sh -c "echo 'nameserver 8.8.8.8
+nameserver 8.8.4.4' > /etc/resolv.conf"
+
 # Client Configuration File
 echo "[Interface]
 PrivateKey = $CLIENT_PRIVATE_KEY
