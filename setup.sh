@@ -76,3 +76,11 @@ qrencode -t ansiutf8 < ~/client-wg0.conf
 
 # Confirm WireGuard is active and display path to QR code
 echo "WireGuard is active. Configuration for the client is in 'client-wg0.conf' and QR code image is stored as 'client-wg0.png'."
+
+# Apply IPTables rules
+sudo iptables -A FORWARD -i wg0 -j ACCEPT
+sudo iptables -A FORWARD -o wg0 -j ACCEPT
+sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+# Apply routing rule
+sudo ip route add $PEER_NETWORK via 10.10.151.1 dev wg0
